@@ -30,7 +30,7 @@ pub async fn upload_post(mut payload: Multipart) -> HttpResponse {
         }
     }
 
-    HttpResponse::Ok().body("File uploaded successfully")
+    HttpResponse::Ok().json(serde_json::json!({ "status": "success" }))
 }
 
 #[get("/")] //This is an index for uploads
