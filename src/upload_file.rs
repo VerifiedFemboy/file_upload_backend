@@ -9,6 +9,8 @@ use actix_web::{get, HttpResponse, post, web};
 use futures_util::{StreamExt, TryStreamExt};
 use serde::Serialize;
 
+use crate::URL_HOST;
+
 const DIRECTORY: &str = "./upload";
 
 #[post("/upload")]
@@ -30,6 +32,7 @@ pub async fn upload_post(mut payload: Multipart) -> HttpResponse {
         }
     }
 
+    println!("File uploaded successfully");
     HttpResponse::Ok().json(serde_json::json!({ "status": "success" }))
 }
 
@@ -51,7 +54,7 @@ pub async fn list_files() -> HttpResponse {
         let entry = entry.ok()?;
         let path = entry.path();
         let ext = path.extension()?.to_str()?.to_string();
-        let url = format!("http://127.0.0.1:8080/file/{}", entry.file_name().into_string().ok()?);
+        let url = format!("https://{}/file/{}", URL_HOST, entry.file_name().into_string().ok()?);
 
         Some(FileStruct {
             name: entry.file_name().into_string().ok()?,
