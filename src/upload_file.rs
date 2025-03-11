@@ -54,7 +54,7 @@ pub async fn list_files() -> HttpResponse {
         let entry = entry.ok()?;
         let path = entry.path();
         let ext = path.extension()?.to_str()?.to_string();
-        let url = format!("https://{}/file/{}", URL_HOST, entry.file_name().into_string().ok()?);
+        let url = format!("http://{}/file/{}", URL_HOST, entry.file_name().into_string().ok()?);
 
         Some(FileStruct {
             name: entry.file_name().into_string().ok()?,
@@ -63,6 +63,7 @@ pub async fn list_files() -> HttpResponse {
         })
     }).collect();
 
+    println!("Requested for Files successfully");
     HttpResponse::Ok().json(serde_json::json!({ "status": "success", "files": files }))
 }
 
