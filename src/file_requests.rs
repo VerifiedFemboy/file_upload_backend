@@ -1,11 +1,11 @@
-use std::fs as fs;
+use std::fs::{self as fs, remove_file};
 use std::fs::read_dir;
 use std::io::Write;
 use std::path::Path;
 
 use actix_files::NamedFile;
 use actix_multipart::Multipart;
-use actix_web::{get, HttpResponse, post, web};
+use actix_web::{delete, get, post, web, HttpResponse};
 use futures_util::{StreamExt, TryStreamExt};
 use serde::Serialize;
 
@@ -41,9 +41,10 @@ struct FileStruct {
     name: String,
     extention: String,
     url: String,
+    size: u64,
 }
 
-#[get("/files")] //TODO: make more efficient 
+#[get("/files")]
 pub async fn list_files() -> HttpResponse {
     let dir = match read_dir(DIRECTORY) {
         Ok(dir) => dir,
@@ -60,11 +61,25 @@ pub async fn list_files() -> HttpResponse {
             name: entry.file_name().into_string().ok()?,
             extention: ext,
             url,
+            size: entry.metadata().ok()?.len(),
         })
     }).collect();
 
     println!("Requested for Files successfully");
     HttpResponse::Ok().json(serde_json::json!({ "status": "success", "files": files }))
+}
+
+#[delete("/file/{filename:.*}")]
+pub async fn delete_file(path: web::Path<String>) -> HttpResponse {
+    let filename = path.as_str();
+    let file_path = format!("{DIRECTORY}/{filename}");
+    match remove_file(&file_path) {
+        Ok(_) => {
+            println!("File deleted successfully");
+            return HttpResponse::Ok().body("File deleted successfully");
+        },
+        Err(err) => HttpResponse::InternalServerError().body(format!("Something went wrong, may file doesn't exist\n{}", err))
+    }
 }
 
 #[get("/file/{filename:.*}")]
